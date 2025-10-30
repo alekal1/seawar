@@ -25,10 +25,20 @@ func (m *SeaWarModel) DisplayPlayerBoard() string {
 
 func (m *SeaWarModel) DisplayOpponentGuessBoard() string {
 	view := variables.BoardTop
-	for index, row := range m.OpponentGuessBoard {
-		view += fmt.Sprintf("%v ", variables.BoardLeft[index])
-		for _, col := range row {
-			view += " " + colorize(col)
+	for rowIndex, row := range m.OpponentGuessBoard {
+		view += fmt.Sprintf("%v ", variables.BoardLeft[rowIndex])
+		for colIndex, col := range row {
+			var displayCol string
+
+			if m.allPlayerShipsSunk() &&
+				col == variables.EmptySpace &&
+				m.OpponentBoard[rowIndex][colIndex] == variables.Ship {
+				displayCol = colorize(variables.Ship)
+			} else {
+				displayCol = colorize(col)
+			}
+
+			view += " " + displayCol
 		}
 		view += "\n"
 	}
