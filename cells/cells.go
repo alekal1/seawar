@@ -13,6 +13,11 @@ type Cell struct {
 }
 
 func ParseCoordinate(coord string) (int, int, error) {
+	coord = strings.TrimSpace(coord)
+
+	if len(coord) == 0 {
+		return 0, 0, fmt.Errorf("empty input")
+	}
 
 	rowLetter := coord[:1]
 	colPart := coord[1:]
