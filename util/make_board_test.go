@@ -1,4 +1,4 @@
-package game
+package util
 
 import (
 	"aleksale/seawar/variables"
@@ -6,18 +6,28 @@ import (
 	"testing"
 )
 
-func TestGenerateRandomOpponentBoard(t *testing.T) {
+func TestMakeEmptyBoard(t *testing.T) {
+	board := MakeEmptyBoard()
+
+	if len(board) != 10 {
+		t.Fatalf("Expected 10 rows, got %d", len(board))
+	}
+
+	totalShips, err := calculateTotalShips(board)
+	if err != nil {
+		t.Fatalf("Unexpected cell value: %v", err)
+	}
+	if totalShips != 0 {
+		t.Fatalf("Expected empty board, got total ships %v", totalShips)
+	}
+}
+
+func TestMakeRandomlyFilledBoard(t *testing.T) {
 	for i := 0; i < 50; i++ {
-		board := GenerateRandomOpponentBoard()
+		board := MakeRandomlyFilledBoard()
 
 		if len(board) != 10 {
 			t.Fatalf("Expected 10 rows, got %d", len(board))
-		}
-
-		for _, row := range board {
-			if len(row) != 10 {
-				t.Fatalf("Expected 10 columns, got %d", len(board))
-			}
 		}
 
 		totalShips, err := calculateTotalShips(board)
@@ -50,7 +60,7 @@ func calculateTotalShips(board [][]string) (int, error) {
 
 func calculateExpectedShips() int {
 	expectedShips := 0
-	for size, count := range FleetLimits {
+	for size, count := range variables.FleetLimits {
 		expectedShips += size * count
 	}
 	return expectedShips

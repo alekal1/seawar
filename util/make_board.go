@@ -1,4 +1,4 @@
-package game
+package util
 
 import (
 	"aleksale/seawar/cells"
@@ -7,7 +7,24 @@ import (
 	"time"
 )
 
-func GenerateRandomOpponentBoard() [][]string {
+func MakeEmptyBoard() [][]string {
+	rows, cols := 10, 10
+
+	matrix := make([][]string, rows)
+	for i := range matrix {
+		matrix[i] = make([]string, cols)
+	}
+
+	for i := 0; i < rows; i++ {
+		for j := 0; j < cols; j++ {
+			matrix[i][j] = variables.EmptySpace
+		}
+	}
+
+	return matrix
+}
+
+func MakeRandomlyFilledBoard() [][]string {
 	rows, cols := 10, 10
 	rand.NewSource(time.Now().UnixNano())
 
@@ -19,7 +36,7 @@ func GenerateRandomOpponentBoard() [][]string {
 		}
 	}
 
-	for size, count := range FleetLimits {
+	for size, count := range variables.FleetLimits {
 		for n := 0; n < count; n++ {
 			placeRandomShip(matrix, size)
 		}

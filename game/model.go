@@ -1,7 +1,8 @@
 package game
 
 import (
-	"aleksale/seawar/cells"
+	"aleksale/seawar/opponent"
+	"aleksale/seawar/player"
 	"aleksale/seawar/statusMsg"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -12,17 +13,10 @@ import (
 type SeaWarModel struct {
 	CoordinatesInput textinput.Model
 
-	Board              [][]string
-	OpponentGuessBoard [][]string
+	Player   *player.Player
+	Opponent *opponent.Opponent
 
-	ShipsPlaced         map[int]int
-	OpponentsGuessShips map[int]int
-
-	AIHits        []cells.Cell
-	OpponentBoard [][]string
-
-	PlayerTurn bool
-	status     string
+	status string
 }
 
 func (m *SeaWarModel) Init() tea.Cmd {
@@ -38,7 +32,7 @@ func (m *SeaWarModel) View() string {
 	playerBoard := boardStyle.Render(m.DisplayPlayerBoard())
 	gap := lipgloss.NewStyle().PaddingRight(4).Render("")
 
-	if m.allShipsPlaced() {
+	if m.Player.AllShipsPlaced() {
 		opponentGuessBoard := boardStyle.Render(m.DisplayOpponentGuessBoard())
 
 		return lipgloss.JoinHorizontal(
@@ -69,18 +63,37 @@ func (m *SeaWarModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
-			if !m.allShipsPlaced() {
-				return m.placeShip(m.CoordinatesInput.Value()), nil
+			if !m.Player.AllShipsPlaced() {
+				m.status = m.Player.PlaceShip(m.CoordinatesInput.Value())
+				m.CoordinatesInput.SetValue("")
+				return m, nil
 			}
 
-			if m.PlayerTurn {
-				return m.playerTurn(m.CoordinatesInput.Value()), nil
+			if m.Player.PlayerTurn {
+				m.status = m.Player.MakeTurn(m.CoordinatesInput.Value(), m.Opponent.Board)
+
+				if m.Opponent.AllShipsSunk(m.Player.GuessBoard) {
+					m.status = statusMsg.PlayerWin()
+					return m, nil
+				}
+
+				m.CoordinatesInput.SetValue("")
+
+				return m, nil
 			}
 		}
 	}
 
-	if !m.PlayerTurn && !m.allPlayerShipsSunk() && !m.allOpponentShipsSunk() {
-		m.opponentTurn()
+	if !m.Player.PlayerTurn && !m.Player.AllShipsSunk() && !m.Opponent.AllShipsSunk(m.Player.Board) {
+		isPlayersTurn, status := m.Opponent.MakeTurn(m.Player.Board)
+		m.status = status
+		if isPlayersTurn {
+			m.Player.PlayerTurn = true
+		}
+	}
+
+	if m.Player.AllShipsPlaced() && m.Player.AllShipsSunk() {
+		m.status = statusMsg.PlayerLost()
 	}
 
 	m.CoordinatesInput, cmd = m.CoordinatesInput.Update(msg)

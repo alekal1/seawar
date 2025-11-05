@@ -11,7 +11,7 @@ import (
 
 func (m *SeaWarModel) DisplayPlayerBoard() string {
 	view := variables.BoardTop
-	for index, row := range m.Board {
+	for index, row := range m.Player.Board {
 		view += fmt.Sprintf("%v ", variables.BoardLeft[index])
 		for _, col := range row {
 			view += " " + colorize(col)
@@ -25,14 +25,14 @@ func (m *SeaWarModel) DisplayPlayerBoard() string {
 
 func (m *SeaWarModel) DisplayOpponentGuessBoard() string {
 	view := variables.BoardTop
-	for rowIndex, row := range m.OpponentGuessBoard {
+	for rowIndex, row := range m.Player.GuessBoard {
 		view += fmt.Sprintf("%v ", variables.BoardLeft[rowIndex])
 		for colIndex, col := range row {
 			var displayCol string
 
-			if m.allPlayerShipsSunk() &&
+			if m.Player.AllShipsSunk() &&
 				col == variables.EmptySpace &&
-				m.OpponentBoard[rowIndex][colIndex] == variables.Ship {
+				m.Opponent.Board[rowIndex][colIndex] == variables.Ship {
 				displayCol = colorize(variables.Ship)
 			} else {
 				displayCol = colorize(col)
@@ -46,10 +46,10 @@ func (m *SeaWarModel) DisplayOpponentGuessBoard() string {
 }
 
 func getRemainingShips(m *SeaWarModel) string {
-	cruiserNum := FleetLimits[4] - m.ShipsPlaced[4]
-	destroyerNum := FleetLimits[3] - m.ShipsPlaced[3]
-	submarineNum := FleetLimits[2] - m.ShipsPlaced[2]
-	boatNum := FleetLimits[1] - m.ShipsPlaced[1]
+	cruiserNum := variables.FleetLimits[4] - m.Player.ShipsPlaced[4]
+	destroyerNum := variables.FleetLimits[3] - m.Player.ShipsPlaced[3]
+	submarineNum := variables.FleetLimits[2] - m.Player.ShipsPlaced[2]
+	boatNum := variables.FleetLimits[1] - m.Player.ShipsPlaced[1]
 
 	columns := []table.Column{
 		{Title: "Type", Width: 20},

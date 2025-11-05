@@ -26,10 +26,6 @@ func PlayerLost() string {
 	return "YOU LOST! All your ships were destroyed!"
 }
 
-func PlayerAlreadyWon() string {
-	return "You already won! Press Ctrl+c to exit."
-}
-
 func NotYourTurn() string {
 	return "Not your turn"
 }

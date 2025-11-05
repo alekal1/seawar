@@ -1,7 +1,9 @@
 package main
 
 import (
-	"aleksale/seawar/variables"
+	"aleksale/seawar/opponent"
+	"aleksale/seawar/player"
+	"aleksale/seawar/util"
 	"os"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -10,23 +12,6 @@ import (
 
 	"aleksale/seawar/game"
 )
-
-func makeBoard() [][]string {
-	rows, cols := 10, 10
-
-	matrix := make([][]string, rows)
-	for i := range matrix {
-		matrix[i] = make([]string, cols)
-	}
-
-	for i := 0; i < rows; i++ {
-		for j := 0; j < cols; j++ {
-			matrix[i][j] = variables.EmptySpace
-		}
-	}
-
-	return matrix
-}
 
 func initialModel() *game.SeaWarModel {
 	ci := textinput.New()
@@ -37,12 +22,10 @@ func initialModel() *game.SeaWarModel {
 	ci.TextStyle = lipgloss.NewStyle().Bold(true)
 
 	return &game.SeaWarModel{
-		CoordinatesInput:   ci,
-		Board:              makeBoard(),
-		OpponentGuessBoard: makeBoard(),
-		OpponentBoard:      game.GenerateRandomOpponentBoard(),
-		ShipsPlaced:        make(map[int]int),
-		PlayerTurn:         true,
+		CoordinatesInput: ci,
+
+		Player:   player.NewPlayer(util.MakeEmptyBoard(), util.MakeEmptyBoard(), make(map[int]int)),
+		Opponent: opponent.NewOpponent(),
 	}
 }
 
