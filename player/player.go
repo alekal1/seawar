@@ -49,37 +49,19 @@ func (p *Player) MakeTurn(coord string, opponentBoard [][]string) string {
 }
 
 func (p *Player) PlaceShip(shipCoordinates string) string {
-	var shipCells []cells.Cell
+	shipCells, parseError := p.parseShipCoordinates(shipCoordinates)
 
-	multipleCoordinates := strings.Contains(shipCoordinates, "-")
-	if multipleCoordinates {
-		coordinates := strings.Split(shipCoordinates, "-")
-		start, end := coordinates[0], coordinates[1]
-
-		startRow, startCol, err := cells.ParseCoordinate(start)
-		endRow, endCol, err := cells.ParseCoordinate(end)
-
-		if err != nil {
-			return statusMsg.InvalidInput()
-		}
-
-		shipCells, _ = cells.CellsBetween(startRow, startCol, endRow, endCol)
-	} else {
-		row, col, err := cells.ParseCoordinate(shipCoordinates)
-		shipCells, err = cells.CellsBetween(row, col, row, col)
-
-		if err != nil {
-			return statusMsg.InvalidInput()
-		}
+	if parseError != nil {
+		return statusMsg.InvalidInput()
 	}
 
-	if ok, err := p.canPlaceShip(shipCells); !ok {
-		return statusMsg.ErrorStatus(err)
+	if placeShipError := p.canPlaceShip(shipCells); placeShipError != nil {
+		return statusMsg.ErrorStatus(placeShipError)
 	}
 
 	size := len(shipCells)
-	if ok, err := p.canPlaceShipOfSize(size); !ok {
-		return statusMsg.ErrorStatus(err)
+	if shipSizeError := p.canPlaceShipOfSize(size); shipSizeError != nil {
+		return statusMsg.ErrorStatus(shipSizeError)
 	}
 
 	p.placeShipAtCells(shipCells)
@@ -88,26 +70,61 @@ func (p *Player) PlaceShip(shipCoordinates string) string {
 	return statusMsg.ShipPlaced(shipCoordinates)
 }
 
-func (p *Player) canPlaceShip(cells []cells.Cell) (bool, error) {
-	for _, cell := range cells {
-		if p.Board[cell.Row][cell.Col] != variables.EmptySpace {
-			return false, fmt.Errorf("cell %s%v is already occupied", variables.BoardLeft[cell.Row], cell.Col+1)
+func (p *Player) parseShipCoordinates(shipCoordinates string) ([]cells.Cell, error) {
+	var shipCells []cells.Cell
+
+	multipleCoordinates := strings.Contains(shipCoordinates, "-")
+	if multipleCoordinates {
+		coordinates := strings.Split(shipCoordinates, "-")
+		start, end := coordinates[0], coordinates[1]
+
+		startRow, startCol, err := cells.ParseCoordinate(start)
+		if err != nil {
+			return nil, err
+		}
+
+		endRow, endCol, err := cells.ParseCoordinate(end)
+
+		if err != nil {
+			return nil, err
+		}
+
+		shipCells, _ = cells.CellsBetween(startRow, startCol, endRow, endCol)
+	} else {
+		row, col, err := cells.ParseCoordinate(shipCoordinates)
+		if err != nil {
+			return nil, err
+		}
+
+		shipCells, err = cells.CellsBetween(row, col, row, col)
+		if err != nil {
+			return nil, err
 		}
 	}
-	return true, nil
+
+	return shipCells, nil
 }
 
-func (p *Player) canPlaceShipOfSize(size int) (bool, error) {
+func (p *Player) canPlaceShip(cells []cells.Cell) error {
+	for _, cell := range cells {
+		if p.Board[cell.Row][cell.Col] != variables.EmptySpace {
+			return fmt.Errorf("cell %s%v is already occupied", variables.BoardLeft[cell.Row], cell.Col+1)
+		}
+	}
+	return nil
+}
+
+func (p *Player) canPlaceShipOfSize(size int) error {
 	limit, exists := variables.FleetLimits[size]
 	if !exists {
-		return false, fmt.Errorf("invalid ship size %d", size)
+		return fmt.Errorf("invalid ship size %d", size)
 	}
 
 	if p.ShipsPlaced[size] >= limit {
-		return false, fmt.Errorf("cannot place more ships of size %d", size)
+		return fmt.Errorf("cannot place more ships of size %d", size)
 	}
 
-	return true, nil
+	return nil
 }
 
 func (p *Player) placeShipAtCells(cells []cells.Cell) {

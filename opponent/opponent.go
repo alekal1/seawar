@@ -12,9 +12,9 @@ type Opponent struct {
 	Hits  []cells.Cell
 }
 
-func NewOpponent() *Opponent {
+func NewOpponent(board [][]string) *Opponent {
 	return &Opponent{
-		Board: util.MakeRandomlyFilledBoard(),
+		Board: board,
 	}
 }
 

@@ -25,7 +25,7 @@ func initialModel() *game.SeaWarModel {
 		CoordinatesInput: ci,
 
 		Player:   player.NewPlayer(util.MakeEmptyBoard(), util.MakeEmptyBoard(), make(map[int]int)),
-		Opponent: opponent.NewOpponent(),
+		Opponent: opponent.NewOpponent(util.MakeRandomlyFilledBoard()),
 	}
 }
 
